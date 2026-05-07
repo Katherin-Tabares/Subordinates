@@ -1,56 +1,103 @@
 
 package com.mycompany.subordinates;
-import java.io.*;
-import java.util.*;
+
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
+
+// Node structure for tree
+class Node {
+    long data;
+    List<Node> children;
+
+    Node(long x) {
+        data = x;
+        children = new ArrayList<>();
+    }
+    Node get(long p) {
+        if (p == data)
+            return this;
+        for (Node node : children)
+            return node.get(p);
+        return null;
+    }
+}
 
 public class Subordinates {
-    public static void main(String[] args) throws Exception {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int n = Integer.parseInt(br.readLine());
+    // Function to add a child to a node
+    static void addChild(Node parent, Node child) {
+        if (parent == null) return;
+        parent.children.add(child);
+    }
 
-        int[] parent = new int[n + 1];
-        int[] childCount = new int[n + 1];
-        int[] sub = new int[n + 1];
+    // Function to print parents of each node
+    static void printParents(Node node, Node parent) {
+        if (parent == null)
+            System.out.println(node.data + " -> NULL");
+        else
+            System.out.println(node.data + " -> " + parent.data);
 
-        StringTokenizer st = new StringTokenizer(br.readLine());
+        for (Node child : node.children)
+            printParents(child, node);
+    }
 
-        // Leer padres
-        for (int i = 2; i <= n; i++) {
-            parent[i] = Integer.parseInt(st.nextToken());
-            childCount[parent[i]]++; // contar hijos
+    // Function to print children of each node
+    static void printChildren(Node node) {
+        System.out.print(node.data + " -> ");
+        for (Node child : node.children)
+            System.out.print(child.data + " ");
+        System.out.println();
+
+        for (Node child : node.children)
+            printChildren(child);
+    }
+
+    // Function to print leaf nodes
+    static void printLeafNodes(Node node) {
+        if (node.children.isEmpty()) {
+            System.out.print(node.data + " ");
+            return;
+        }
+        for (Node child : node.children)
+            printLeafNodes(child);
+    }
+
+    // Function to print degrees of each node 
+    static void printDegrees(Node node, Node parent) {
+        int degree = node.children.size();
+        if (parent != null)
+            degree++;
+        System.out.println(node.data + " -> " + degree);
+
+        for (Node child : node.children)
+            printDegrees(child, node);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // The first input line has an integer n: the number of employees
+        long n = sc.nextLong();
+
+        // Relacionado padre - hijo
+        Node root = new Node(1);
+        for (long i = 2; i <= n; i++) {
+            Node node = new Node(i);
+            long idParent = sc.nextLong();
+            addChild(root.get(idParent), node); // Construyendo el árbol
         }
 
-        // Cola para nodos listos (hojas)
-        Deque<Integer> queue = new ArrayDeque<>();
+        System.out.println("Parents of each node:");
+        printParents(root, null);
 
-        // Inicializar con hojas
-        for (int i = 1; i <= n; i++) {
-            if (childCount[i] == 0) {
-                queue.add(i);
-            }
-        }
+        System.out.println("Children of each node:");
+        printChildren(root);
 
-        // Procesamiento tipo topológico
-        while (!queue.isEmpty()) {
-            int u = queue.poll();
+        System.out.print("Leaf nodes: ");
+        printLeafNodes(root);
+        System.out.println();
 
-            int p = parent[u];
-            if (p != 0) { // 1 no tiene padre
-                sub[p] += 1 + sub[u];
-                childCount[p]--;
-
-                if (childCount[p] == 0) {
-                    queue.add(p);
-                }
-            }
-        }
-
-        // Output
-        StringBuilder out = new StringBuilder();
-        for (int i = 1; i <= n; i++) {
-            out.append(sub[i]).append(" ");
-        }
-
-        System.out.println(out);
+        System.out.println("Degrees of nodes:");
+        printDegrees(root, null);
     }
 }
